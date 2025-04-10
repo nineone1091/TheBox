@@ -44,7 +44,7 @@ Vue.js系統渲染
 #### **此功能需連結資料庫，故無法於網站連結呈現**
 
 ---
-#網站完整功能展示影片
+# 網站完整功能展示影片
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/jEtjJZFgqrU/0.jpg)](https://www.youtube.com/watch?v=jEtjJZFgqrU "TheBox網站")
 
 ---
