@@ -45,6 +45,7 @@
 
 ---
 # 網站完整功能展示影片
+#### 外部連結，須至Youtube平台觀看
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/jEtjJZFgqrU/hqdefault.jpg)](https://www.youtube.com/watch?v=jEtjJZFgqrU "TheBox網站")
 
 ---
