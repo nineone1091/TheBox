@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>網站流量統計</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/mygo.css" />
+    <link rel="stylesheet" href="css/all.css" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+        body {
+            font-family: "Zen Maru Gothic", serif;
+            background-color: var(--color9);
+        }
+
+        a {
+            text-decoration: none;
+            color: black;
+        }
+
+        a:hover {
+            color: inherit;
+            /* 滑鼠懸停時顏色不變 */
+            text-decoration: none;
+            /* 滑鼠懸停時無下劃線 */
+        }
+
+        .theboxbottom {
+            border-radius: 50%;
+            background-image: url(image/thebox/O59fl1Ie_400x400.png);
+            width: 20%;
+            height: auto;
+            background-position: center center;
+            background-size: cover;
+        }
+
+        button {
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            background-color: var(--color5);
+            color: white;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--color2);
+        }
+
+        button.active {
+            background-color: var(--color7);
+        }
+
+        #chartContainer {
+            width: 500px;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #myChart {
+            max-width: 100% !important;
+            max-height: 100% !important;
+        }
+    </style>
+</head>
+
+<body>
+    <section id="s01">
+        <nav class="navbar navbar-expand-lg bg-white">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <img src="image/thebox/images.png" alt="bootstrap" width="70">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link fs-4" aria-current="page" href="Thebox.html">HOME</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fs-4" href="TheboxAbout.html">箱箱各式規範</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fs-4" href="TheboxSong.html">原創曲專區</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fs-4" href="TheboxStream.html">影片收藏庫</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle fs-4" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                旗下藝人
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item fs-5" href="TheboxWolf.html">森森鈴蘭</a></li>
+                                <li><a class="dropdown-item fs-5" href="TheboxFox.html">瑪格麗特諾爾絲</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fs-4" href="TheboxMessage.html">問題與建議</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fs-4" href="TheboxBack.html">後台</a>
+                        </li>
+                    </ul>
+                    <li class="nav-item" style="list-style: none;">
+                        <a class="nav-link fs-4 me-3" href="#">網頁授權頁</a>
+                    </li>
+                </div>
+            </div>
+        </nav>
+    </section>
+    <div id="app" class="mt-3 ms-5">
+        <h2>網站流量統計</h2>
+        <label>選擇月份：</label>
+        <select v-model="selectedMonth" @change="fetchData">
+            <option value="">全部</option>
+            <option v-for="month in months" :value="month">{{ month }}</option>
+        </select>
+        <div id="chartContainer">
+            <canvas id="chart"></canvas>
+        </div>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="js/all.js"></script>
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/wow.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    months: [],
+                    selectedMonth: "",
+                    chart: null,
+                    isAdmin: false,
+                };
+            },
+            mounted() {
+                this.generateMonths();
+                this.checkAdmin();
+            },
+            methods: {
+                generateMonths() {
+                    let months = [];
+                    let today = new Date();
+                    for (let i = 0; i < 12; i++) {
+                        let date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                        months.push(date.toISOString().slice(0, 7));
+                    }
+                    this.months = months;
+                },
+                async fetchData() {
+                    try {
+                        const response = await fetch(`fetch_data.php?month=${this.selectedMonth}`);
+                        const data = await response.json();
+                        this.renderChart(data);
+                    } catch (error) {
+                        console.error("取得數據失敗", error);
+                        Swal.fire({
+                            icon: "error",
+                            title: "數據錯誤",
+                            text: "無法載入圖表數據，請稍後再試！"
+                        });
+                    }
+                },
+                renderChart(data) {
+                    if (this.chart) this.chart.destroy();
+                    let ctx = document.getElementById("chart").getContext("2d");
+                    this.chart = new Chart(ctx, {
+                        type: "pie",
+                        data: {
+                            labels: Object.keys(data),
+                            datasets: [{
+                                data: Object.values(data),
+                                backgroundColor: ["red", "blue", "green", "yellow", "purple", "orange", "pink", "cyan"]
+                            }]
+                        }
+                    });
+                },
+                async checkAdmin() {
+                    const uid = this.getCookie("Uid01");
+                    if (!uid) {
+                        this.redirectToHome();
+                        return;
+                    }
+    
+                    try {
+                        const response = await fetch(`messageSystemApi.php?action=user_info&uid=${uid}`);
+                        const data = await response.json();
+    
+                        if (data.state && (data.data.isAdmin === true || data.data.isAdmin == 100)) {
+                            this.isAdmin = true; // 確認為管理員
+                        } else {
+                            this.redirectToHome();
+                        }
+                    } catch (error) {
+                        console.error("驗證管理員失敗", error);
+                        this.redirectToHome();
+                    }
+                },
+                redirectToHome() {
+                    Swal.fire({
+                        icon: "error",
+                        title: "權限不足",
+                        text: "此頁面僅限管理員存取，即將返回首頁。",
+                        confirmButtonText: "確定"
+                    }).then(() => {
+                        window.location.href = "Thebox.html";
+                    });
+                },
+                getCookie(cname) {
+                    let name = cname + "=";
+                    let ca = document.cookie.split(';');
+                    for (let i = 0; i < ca.length; i++) {
+                        let c = ca[i].trim();
+                        if (c.indexOf(name) == 0) {
+                            return c.substring(name.length, c.length);
+                        }
+                    }
+                    return "";
+                }
+            }
+        }).mount("#app");
+    </script>
+    
+</body>
+
+</html>
